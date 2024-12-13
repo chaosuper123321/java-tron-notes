@@ -5,11 +5,15 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.tron.protos.contract.ShieldContract.ReceiveDescription;
 
+/**
+ * 创建和操作接收描述对象ReceiveDescription的实例。
+ */
 @Slf4j(topic = "capsule")
 public class ReceiveDescriptionCapsule implements ProtoCapsule<ReceiveDescription> {
 
   private ReceiveDescription receiveDescription;
 
+  //构造函数用于创建ReceiveDescriptionCapsule实例。
   public ReceiveDescriptionCapsule() {
     receiveDescription = ReceiveDescription.newBuilder().build();
   }
@@ -18,6 +22,7 @@ public class ReceiveDescriptionCapsule implements ProtoCapsule<ReceiveDescriptio
     this.receiveDescription = receiveDescription;
   }
 
+  //从字节数组解析数据并创建ReceiveDescription实例。
   public ReceiveDescriptionCapsule(final byte[] data) {
     try {
       this.receiveDescription = ReceiveDescription.parseFrom(data);

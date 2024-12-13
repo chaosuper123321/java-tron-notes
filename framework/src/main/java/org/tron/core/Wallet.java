@@ -489,7 +489,14 @@ public class Wallet {
   }
 
   /**
-   * Broadcast a transaction.
+   * 广播一个已签名的交易。
+   *    通过检查区块状态、
+   *    连接情况、
+   *    待处理交易数量等条件，
+   *    确保交易的有效性，
+   *    并进行相应的处理。
+   * @param signedTransaction
+   * @return
    */
   public GrpcAPI.Return broadcastTransaction(Transaction signedTransaction) {
     GrpcAPI.Return.Builder builder = GrpcAPI.Return.newBuilder();
@@ -499,6 +506,7 @@ public class Wallet {
     try {
       TransactionMessage message = new TransactionMessage(signedTransaction.toByteArray());
 
+      //如果当前区块未被固化
       if (tronNetDelegate.isBlockUnsolidified()) {
         logger.warn("Broadcast transaction {} has failed, block unsolidified.", txID);
         return builder.setResult(false).setCode(response_code.BLOCK_UNSOLIDIFIED)
@@ -528,6 +536,7 @@ public class Wallet {
         }
       }
 
+      //检查系统负载是否较高
       if (dbManager.isTooManyPending()) {
         logger.warn("Broadcast transaction {} has failed, too many pending.", txID);
         return builder.setResult(false).setCode(response_code.SERVER_BUSY)

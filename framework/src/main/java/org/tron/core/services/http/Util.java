@@ -268,7 +268,12 @@ public class Util {
   }
 
   /**
-   * Note: the contracts of the returned transaction may be empty
+   * 将传入的交易字符串解析为一个 Transaction 对象。
+   * 它通过提取合约信息，
+   * 处理每个合约并进行打包，
+   * 最终返回一个构建好的交易对象。
+   *
+   * 如果在处理过程中发生任何异常，将记录相应的调试信息并处理。
    */
   public static Transaction packTransaction(String strTransaction, boolean selfType) {
     JSONObject jsonTransaction = JSON.parseObject(strTransaction);

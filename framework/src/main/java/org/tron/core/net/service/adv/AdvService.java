@@ -84,6 +84,7 @@ public class AdvService {
 
   private boolean fastForward = Args.getInstance().isFastForward();
 
+  //初始化方法，启动扩散和获取线程。
   public void init() {
 
     spreadExecutor.scheduleWithFixedDelay(() -> {
@@ -103,16 +104,19 @@ public class AdvService {
     }, 100, 30, TimeUnit.MILLISECONDS);
   }
 
+  //关闭方法，关闭扩散和获取线程。
   public void close() {
     ExecutorServiceManager.shutdownAndAwaitTermination(spreadExecutor, spreadName);
     ExecutorServiceManager.shutdownAndAwaitTermination(fetchExecutor, fetchName);
   }
 
+  //将项目添加到缓存中。
   public synchronized void addInvToCache(Item item) {
     invToFetchCache.put(item, System.currentTimeMillis());
     invToFetch.remove(item);
   }
 
+  //添加项目到广告服务中。
   public boolean addInv(Item item) {
     if (fastForward && item.getType().equals(InventoryType.TRX)) {
       return false;
@@ -140,6 +144,7 @@ public class AdvService {
     return true;
   }
 
+  //获取消息。
   public Message getMessage(Item item) {
     if (item.getType() == InventoryType.TRX) {
       return trxCache.getIfPresent(item);
@@ -148,6 +153,7 @@ public class AdvService {
     }
   }
 
+  //快速广播交易。
   public int fastBroadcastTransaction(TransactionMessage msg) {
 
     List<PeerConnection> peers = tronNetDelegate.getActivePeer().stream()
@@ -182,6 +188,7 @@ public class AdvService {
     return peersCount;
   }
 
+  //广播消息
   public void broadcast(Message msg) {
 
     if (fastForward) {
@@ -243,6 +250,7 @@ public class AdvService {
   }
   */
 
+  //处理断开连接事件
   public void onDisconnect(PeerConnection peer) {
     if (!peer.getAdvInvRequest().isEmpty()) {
       peer.getAdvInvRequest().keySet().forEach(item -> {
@@ -260,6 +268,7 @@ public class AdvService {
     }
   }
 
+  //处理获取事件。
   private void consumerInvToFetch() {
     Collection<PeerConnection> peers = tronNetDelegate.getActivePeer().stream()
         .filter(peer -> peer.isIdle())
@@ -294,6 +303,7 @@ public class AdvService {
     invSender.sendFetch();
   }
 
+  //处理扩散事件。
   private synchronized void consumerInvToSpread() {
 
     List<PeerConnection> peers = tronNetDelegate.getActivePeer().stream()

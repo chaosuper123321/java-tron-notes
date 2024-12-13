@@ -21,8 +21,14 @@ import org.tron.protos.Protocol.Transaction.Result.contractResult;
 
 public class ProgramResult {
 
+  /*
+energyUsed：用于记录执行智能合约过程中消耗的能量。
+hReturn：存储智能合约执行后返回的数据。
+contractAddress：智能合约地址。
+logInfoList：执行过程中产生的日志信息列表。
+internalTransactions：内部交易列表。
+   */
   private long energyUsed = 0;
-  //private long futureRefund = 0;
 
   @Getter
   private long energyPenaltyTotal = 0;
@@ -33,7 +39,6 @@ public class ProgramResult {
   private boolean revert;
 
   private Set<DataWord> deleteAccounts;
-  //private ByteArraySet touchedAccounts = new ByteArraySet();
   private List<InternalTransaction> internalTransactions;
   private List<LogInfo> logInfoList;
   private TransactionResultCapsule ret = new TransactionResultCapsule();
@@ -62,19 +67,23 @@ public class ProgramResult {
     return result;
   }
 
+  //计算执行智能合约过程中消耗的能量。
   public void spendEnergy(long energy) {
     energyUsed += energy;
   }
 
+  //计算执行智能合约过程中消耗的能量。
   public void spendEnergyWithPenalty(long total, long penalty) {
     energyPenaltyTotal += penalty;
     energyUsed += total;
   }
 
+  //设置智能合约是否被回滚。
   public void setRevert() {
     this.revert = true;
   }
 
+  //检查智能合约是否被回滚。
   public boolean isRevert() {
     return revert;
   }
@@ -128,6 +137,7 @@ public class ProgramResult {
     return energyUsed;
   }
 
+  ////处理和存储在执行过程中需要删除的账户。
   public Set<DataWord> getDeleteAccounts() {
     if (deleteAccounts == null) {
       deleteAccounts = new HashSet<>();
@@ -135,30 +145,19 @@ public class ProgramResult {
     return deleteAccounts;
   }
 
+  //处理和存储在执行过程中需要删除的账户。
   public void addDeleteAccount(DataWord address) {
     getDeleteAccounts().add(address);
   }
 
+  ////处理和存储在执行过程中需要删除的账户。
   public void addDeleteAccounts(Set<DataWord> accounts) {
     if (!isEmpty(accounts)) {
       getDeleteAccounts().addAll(accounts);
     }
   }
 
-//  public void addTouchAccount(byte[] addr) {
-//    touchedAccounts.add(addr);
-//  }
-
-//  public Set<byte[]> getTouchedAccounts() {
-//    return touchedAccounts;
-//  }
-
-//  public void addTouchAccounts(Set<byte[]> accounts) {
-//    if (!isEmpty(accounts)) {
-//      getTouchedAccounts().addAll(accounts);
-//    }
-//  }
-
+  //获取执行过程中产生的日志信息。
   public List<LogInfo> getLogInfoList() {
     if (logInfoList == null) {
       logInfoList = new ArrayList<>();
@@ -166,10 +165,12 @@ public class ProgramResult {
     return logInfoList;
   }
 
+  //添加执行过程中产生的日志信息。
   public void addLogInfo(LogInfo logInfo) {
     getLogInfoList().add(logInfo);
   }
 
+  //添加执行过程中产生的日志信息。
   public void addLogInfos(List<LogInfo> logInfos) {
     if (!isEmpty(logInfos)) {
       getLogInfoList().addAll(logInfos);
@@ -187,6 +188,7 @@ public class ProgramResult {
     getCallCreateList().add(new CallCreate(data, destination, energyLimit, value));
   }
 
+  //获取内部交易列表。
   public List<InternalTransaction> getInternalTransactions() {
     if (internalTransactions == null) {
       internalTransactions = new ArrayList<>();
@@ -194,6 +196,7 @@ public class ProgramResult {
     return internalTransactions;
   }
 
+  //添加内部交易列表。
   public InternalTransaction addInternalTransaction(byte[] parentHash, int deep,
       byte[] senderAddress, byte[] transferAddress, long value, byte[] data, String note,
       long nonce, Map<String, Long> token) {
@@ -204,10 +207,12 @@ public class ProgramResult {
     return transaction;
   }
 
+  //添加内部交易列表。
   public void addInternalTransaction(InternalTransaction internalTransaction) {
     getInternalTransactions().add(internalTransaction);
   }
 
+  //添加内部交易列表。
   public void addInternalTransactions(List<InternalTransaction> internalTransactions) {
     getInternalTransactions().addAll(internalTransactions);
   }
@@ -218,32 +223,18 @@ public class ProgramResult {
     }
   }
 
-//  public void addFutureRefund(long energyValue) {
-//    futureRefund += energyValue;
-//  }
-
-//  public long getFutureRefund() {
-//    return futureRefund;
-//  }
-
-//  public void resetFutureRefund() {
-//    futureRefund = 0;
-//  }
-
   public void reset() {
     getDeleteAccounts().clear();
     getLogInfoList().clear();
-    //resetFutureRefund();
   }
 
+  //合并另一个ProgramResult的结果到当前实例。
   public void merge(ProgramResult another) {
     addInternalTransactions(another.getInternalTransactions());
     addTotalPenalty(another.getEnergyPenaltyTotal());
     if (another.getException() == null && !another.isRevert()) {
       addDeleteAccounts(another.getDeleteAccounts());
       addLogInfos(another.getLogInfoList());
-      //addFutureRefund(another.getFutureRefund());
-      //addTouchAccounts(another.getTouchedAccounts());
     }
   }
 

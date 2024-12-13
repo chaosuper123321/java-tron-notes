@@ -7,9 +7,14 @@ import com.google.common.primitives.UnsignedBytes;
  * Utility code to do optimized byte-array comparison. This is borrowed and slightly modified from
  * Guava's {@link UnsignedBytes} class to be able to compare arrays that start at non-zero offsets.
  */
+
+/**
+ * 提供优化的字节数组比较功能，允许比较从非零偏移开始的数组。
+ */
 @SuppressWarnings("restriction")
 public abstract class FastByteComparisons {
 
+  //用于比较两个字节数组是否相等
   public static boolean equalByte(byte[] b1, byte[] b2) {
     return b1.length == b2.length && compareTo(b1, 0, b1.length, b2, 0, b2.length) == 0;
   }
@@ -25,6 +30,7 @@ public abstract class FastByteComparisons {
    * @param l2 length2
    * @return int
    */
+  //用于按字典顺序比较两个字节数组
   public static int compareTo(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
     return LexicographicalComparerHolder.BEST_COMPARER.compareTo(
         b1, s1, l1, b2, s2, l2);

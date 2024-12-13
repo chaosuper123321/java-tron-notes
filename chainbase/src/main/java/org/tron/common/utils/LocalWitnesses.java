@@ -45,6 +45,7 @@ public class LocalWitnesses {
     setPrivateKeys(privateKeys);
   }
 
+  //根据私钥生成见证人账户地址。
   public byte[] getWitnessAccountAddress(boolean isECKeyCryptoEngine) {
     if (witnessAccountAddress == null) {
       byte[] privateKey = ByteArray.fromHexString(getPrivateKey());
@@ -54,10 +55,12 @@ public class LocalWitnesses {
     return witnessAccountAddress;
   }
 
+  //设置见证人账户地址。
   public void setWitnessAccountAddress(final byte[] localWitnessAccountAddress) {
     this.witnessAccountAddress = localWitnessAccountAddress;
   }
 
+  //初始化见证人账户地址。
   public void initWitnessAccountAddress(boolean isECKeyCryptoEngine) {
     if (witnessAccountAddress == null) {
       byte[] privateKey = ByteArray.fromHexString(getPrivateKey());
@@ -80,6 +83,7 @@ public class LocalWitnesses {
     this.privateKeys = privateKeys;
   }
 
+  //验证私钥的有效性。
   private void validate(String privateKey) {
     if (StringUtils.startsWithIgnoreCase(privateKey, "0X")) {
       privateKey = privateKey.substring(2);
@@ -98,7 +102,7 @@ public class LocalWitnesses {
     this.privateKeys.add(privateKey);
   }
 
-  //get the first one recently
+  //获取列表中的第一个私钥。
   public String getPrivateKey() {
     if (CollectionUtils.isEmpty(privateKeys)) {
       logger.warn("PrivateKey is null.");
@@ -107,6 +111,7 @@ public class LocalWitnesses {
     return privateKeys.get(0);
   }
 
+  //根据私钥获取公钥。
   public byte[] getPublicKey() {
     if (CollectionUtils.isEmpty(privateKeys)) {
       logger.warn("PrivateKey is null.");

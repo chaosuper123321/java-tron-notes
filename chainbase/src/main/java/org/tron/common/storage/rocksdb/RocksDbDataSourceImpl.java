@@ -53,10 +53,15 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     Iterable<Map.Entry<byte[], byte[]>>, Instance<RocksDbDataSourceImpl> {
 
   ReadOptions readOpts;
+  //数据库名称。
   private String dataBaseName;
+  //RocksDB数据库实例。
   private RocksDB database;
+  //表示数据库是否处于活跃状态。
   private volatile boolean alive;
+  //数据库文件存储的父路径。
   private String parentPath;
+  //用于数据库重置操作的读写锁。
   private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
   private static final String KEY_ENGINE = "ENGINE";
   private static final String ROCKSDB = "ROCKSDB";
@@ -96,6 +101,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     return alive;
   }
 
+  //关闭数据库连接。
   @Override
   public void closeDB() {
     resetDbLock.writeLock().lock();
@@ -112,6 +118,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //重置数据库，包括关闭和删除现有数据库文件。
   @Override
   public void resetDb() {
     resetDbLock.writeLock().lock();
@@ -191,6 +198,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     return ROCKSDB.equals(engine);
   }
 
+  //初始化数据库设置和配置。
   public void initDB() {
     if (!checkOrInitEngine()) {
       throw new RuntimeException(
@@ -288,6 +296,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //将键值对存储到数据库中。
   @Override
   public void putData(byte[] key, byte[] value) {
     resetDbLock.readLock().lock();
@@ -303,6 +312,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //根据键检索值。
   @Override
   public byte[] getData(byte[] key) {
     resetDbLock.readLock().lock();
@@ -318,6 +328,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //根据键删除数据。
   @Override
   public void deleteData(byte[] key) {
     resetDbLock.readLock().lock();
@@ -376,6 +387,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //批量更新数据库中的数据。
   @Override
   public void updateByBatch(Map<byte[], byte[]> rows, WriteOptionsWrapper optionsWrapper) {
     resetDbLock.readLock().lock();
@@ -414,6 +426,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //检索与给定键相关的下一批数据。
   public List<byte[]> getKeysNext(byte[] key, long limit) {
     resetDbLock.readLock().lock();
     try {
@@ -527,6 +540,7 @@ public class RocksDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //备份数据库到指定目录。
   public void backup(String dir) throws RocksDBException {
     Checkpoint cp = Checkpoint.create(database);
     cp.createCheckpoint(dir + this.getDBName());

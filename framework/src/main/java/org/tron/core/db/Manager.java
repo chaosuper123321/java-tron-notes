@@ -826,35 +826,50 @@ public class Manager {
   }
 
   /**
-   * push transaction into pending.
+   * 处理交易的推送逻辑，
+   *  包括验证签名、
+   *  检查交易类型、
+   *  处理并发问题、
+   *  更新待处理交易列表
+   *  维护相关指标等。
+   *
+   * 返回 true ，表示交易成功推送。
+   * 返回 false ，表示无法处理该交易。
    */
   public boolean pushTransaction(final TransactionCapsule trx)
       throws ValidateSignatureException, ContractValidateException, ContractExeException,
       AccountResourceInsufficientException, DupTransactionException, TaposException,
       TooBigTransactionException, TransactionExpirationException,
       ReceiptCheckErrException, VMIllegalException, TooBigTransactionResultException {
-
+    //检查交易是否为“保护交易”（shielded transaction），并且当前节点是否允许处理保护交易。
+    //如果是保护交易且不允许，则直接返回 true ，表示无需进一步处理。
     if (isShieldedTransaction(trx.getInstance()) && !Args.getInstance()
         .isFullNodeAllowShieldedTransactionArgs()) {
       return true;
     }
-
+    //将交易 trx 添加到推送交易队列 pushTransactionQueue 中。
     pushTransactionQueue.add(trx);
     Metrics.gaugeInc(MetricKeys.Gauge.MANAGER_QUEUE, 1,
         MetricLabels.Gauge.QUEUE_QUEUED);
     try {
+      //验证交易的签名是否有效。
       if (!trx.validateSignature(chainBaseManager.getAccountStore(),
           chainBaseManager.getDynamicPropertiesStore())) {
+        //如果签名验证失败，则抛出 ValidateSignatureException 异常，并记录交易ID。
         throw new ValidateSignatureException(String.format("trans sig validate failed, id: %s",
             trx.getTransactionId()));
       }
 
+      //对 transactionLock 对象进行同步，以确保在处理交易时不会出现并发问题。
       synchronized (transactionLock) {
+        //进入一个循环，检查是否需要等待区块锁。
         while (true) {
           try {
+            //如果需要等待，则线程会休眠一段时间；
             if (isBlockWaitingLock()) {
               TimeUnit.MILLISECONDS.sleep(SLEEP_FOR_WAIT_LOCK);
             } else {
+              //如果不需要等待，则跳出循环。
               break;
             }
           } catch (InterruptedException e) {
@@ -862,34 +877,49 @@ public class Manager {
             logger.debug("The wait has been interrupted.");
           }
         }
+        //对当前对象进行同步，以确保在处理交易时的线程安全。
         synchronized (this) {
+          //检查当前交易是否为保护交易，并且当前待处理的保护交易数量是否达到最大限制。
           if (isShieldedTransaction(trx.getInstance())
                   && shieldedTransInPendingCounts.get() >= shieldedTransInPendingMaxCounts) {
+            //如果达到，则返回 false ，表示无法处理该交易。
             return false;
           }
+          //检查当前会话是否有效。
           if (!session.valid()) {
+            //如果无效，则构建一个新的会话并设置到当前会话中。
             session.setValue(revokingStore.buildSession());
           }
 
+          //创建一个临时会话 tmpSession ，用于处理交易。
           try (ISession tmpSession = revokingStore.buildSession()) {
+            //调用 processTransaction 方法处理交易 trx 。
             processTransaction(trx, null);
+            //将交易的跟踪信息设置为 null
             trx.setTrxTrace(null);
+            //将交易添加到待处理交易列表 pendingTransactions 中。
             pendingTransactions.add(trx);
             Metrics.gaugeInc(MetricKeys.Gauge.MANAGER_QUEUE, 1,
                     MetricLabels.Gauge.QUEUE_PENDING);
+            // 合并临时会话中的更改，确保数据一致性。
             tmpSession.merge();
           }
+          //如果当前交易是保护交易，
           if (isShieldedTransaction(trx.getInstance())) {
+            //则增加待处理保护交易的计数。
             shieldedTransInPendingCounts.incrementAndGet();
           }
         }
       }
-    } finally {
+    } finally { //开始一个 finally 块，无论是否发生异常都会执行的代码。
+      // 从推送交易队列中移除交易 trx ，
       if (pushTransactionQueue.remove(trx)) {
+        //并减少队列中的交易数量指标。
         Metrics.gaugeInc(MetricKeys.Gauge.MANAGER_QUEUE, -1,
             MetricLabels.Gauge.QUEUE_QUEUED);
       }
     }
+    //返回 true ，表示交易成功推送。
     return true;
   }
 
@@ -1015,34 +1045,53 @@ public class Manager {
     applyBlock(block, block.getTransactions());
   }
 
+  /**
+   * 处理区块及其交易的应用，包括对区块的验证、存储、更新分叉信息和管理撤销存储的刷新计数。整个过程确保区块链的状态在新区块被应用后保持一致和有效。
+   * @param block
+   * @param txs
+   */
   private void applyBlock(BlockCapsule block, List<TransactionCapsule> txs)
       throws ContractValidateException, ContractExeException, ValidateSignatureException,
       AccountResourceInsufficientException, TransactionExpirationException,
       TooBigTransactionException, DupTransactionException, TaposException,
       ValidateScheduleException, ReceiptCheckErrException, VMIllegalException,
       TooBigTransactionResultException, ZksnarkException, BadBlockException, EventBloomException {
+    //调用  processBlock  方法，处理传入的区块和交易列表。
     processBlock(block, txs);
+    //将区块的 ID（以字节数组形式）和整个区块对象存储到区块存储中
     chainBaseManager.getBlockStore().put(block.getBlockId().getBytes(), block);
+    //将区块的 ID 存储到区块索引存储中，以便快速查找和访问该区块。
     chainBaseManager.getBlockIndexStore().put(block.getBlockId());
+    //检查当前区块中的交易数量是否不为 0。
     if (block.getTransactions().size() != 0) {
+      //如果区块中有交易，则将区块的编号（转换为字节数组）和该区块的执行结果存储到交易结果存储中。
       chainBaseManager.getTransactionRetStore()
           .put(ByteArray.fromLong(block.getNum()), block.getResult());
     }
-
+    //调用  updateFork  方法，传入当前区块，更新分叉信息。这通常涉及到对区块链状态的更新。
     updateFork(block);
+    //检查当前时间与区块时间戳之间的差值是否大于或等于 60,000 毫秒（即 1 分钟）。
     if (System.currentTimeMillis() - block.getTimeStamp() >= 60_000) {
+      //设置撤销存储的最大刷新计数为  maxFlushCount 。
       revokingStore.setMaxFlushCount(maxFlushCount);
+      //检查是否存在一个非空的关闭区块时间。
       if (Args.getInstance().getShutdownBlockTime() != null
+          //如果存在，获取在当前区块时间减去  maxFlushCount * 3000  毫秒后的下一个有效时间。
           && Args.getInstance().getShutdownBlockTime().getNextValidTimeAfter(
             new Date(block.getTimeStamp() - maxFlushCount * 1000 * 3L))
+          //然后比较这个有效时间与当前区块的时间戳。如果有效时间小于或等于当前区块的时间戳，
           .compareTo(new Date(block.getTimeStamp())) <= 0) {
+        //将撤销存储的最大刷新计数设置为默认的最小刷新计数。
         revokingStore.setMaxFlushCount(SnapshotManager.DEFAULT_MIN_FLUSH_COUNT);
       }
+      //检查  latestSolidityNumShutDown  是否大于 0，
+      //且  latestSolidityNumShutDown  减去当前区块的编号是否小于或等于  maxFlushCount 。
       if (latestSolidityNumShutDown > 0 && latestSolidityNumShutDown - block.getNum()
           <= maxFlushCount) {
         revokingStore.setMaxFlushCount(SnapshotManager.DEFAULT_MIN_FLUSH_COUNT);
       }
     } else {
+      //将撤销存储的最大刷新计数设置为默认的最小刷新计数。
       revokingStore.setMaxFlushCount(SnapshotManager.DEFAULT_MIN_FLUSH_COUNT);
     }
   }
@@ -1894,11 +1943,15 @@ public class Manager {
             new BytesCapsule(JsonUtil.obj2Json(item).getBytes()));
   }
 
+
   public void updateFork(BlockCapsule block) {
     int blockVersion = block.getInstance().getBlockHeader().getRawData().getVersion();
+    //检查传入的区块版本是否高于当前支持的版本
     if (blockVersion > ChainConstant.BLOCK_VERSION) {
+      //如果是，则记录警告信息，
       logger.warn("Newer block version found: {}, YOU MUST UPGRADE java-tron!", blockVersion);
     }
+    //将该区块信息更新到分叉控制器中，以便后续处理。
     chainBaseManager.getForkController().update(block);
   }
 
@@ -1929,6 +1982,8 @@ public class Manager {
     return chainBaseManager.getNullifierStore();
   }
 
+  //检查当前系统中的待处理交易和需要重新推送的交易的数量是否超过了设定的最大值。
+  //如果超过，则表示系统负载较高，需要采取相应的措施来处理这些交易。
   public boolean isTooManyPending() {
     return getPendingTransactions().size() + getRePushTransactions().size()
         > maxTransactionPendingSize;

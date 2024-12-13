@@ -22,28 +22,38 @@ import org.tron.core.db.Manager;
 
 public interface Application {
 
+  //设置选项参数。
   void setOptions(Args args);
 
+  //初始化应用程序。
   void init(CommonParameter parameter);
 
+  //初始化应用程序服务。
   void initServices(CommonParameter parameter);
 
+  //启动应用程序。
   void startup();
 
+  //关闭应用程序。
   void shutdown();
 
+  //启动服务。
   void startServices();
 
-  // DO NOT USE THIS METHOD IN TEST CASES MAIN-THREAD
+  // 阻止直到关闭。
   default void blockUntilShutdown() {
   }
 
+  //关闭服务。
   void shutdownServices();
 
+  //添加服务。
   void addService(Service service);
 
+  //获取数据库管理器。
   Manager getDbManager();
 
+  //获取链基础管理器。
   ChainBaseManager getChainBaseManager();
 
 }

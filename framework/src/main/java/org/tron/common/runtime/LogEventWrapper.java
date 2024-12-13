@@ -9,34 +9,37 @@ import org.tron.core.vm.utils.MUtil;
 import org.tron.protos.contract.SmartContractOuterClass.SmartContract;
 import org.tron.protos.contract.SmartContractOuterClass.SmartContract.ABI.Entry.Param;
 
+/**
+ * 封装日志事件，提供对智能合约日志事件的处理和解析功能。
+ */
 public class LogEventWrapper extends ContractTrigger {
 
+  //存储主题列表
   @Getter
   @Setter
   private List<byte[]> topicList;
 
+  //存储数据
   @Getter
   @Setter
   private byte[] data;
 
-  /**
-   * decode from sha3($EventSignature) with the ABI of this contract.
-   */
+  //存储事件签名
   @Getter
   @Setter
   private String eventSignature;
 
-  /**
-   * ABI Entry of this event.
-   */
+  //存储ABI条目
   @Getter
   @Setter
   private SmartContract.ABI.Entry abiEntry;
 
+  //初始化对象
   public LogEventWrapper() {
     super();
   }
 
+  //获取完整的事件签名
   public String getEventSignatureFull() {
     if (Objects.isNull(abiEntry)) {
       return "fallback()";

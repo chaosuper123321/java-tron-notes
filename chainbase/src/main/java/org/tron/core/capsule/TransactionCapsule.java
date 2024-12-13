@@ -492,8 +492,16 @@ public class TransactionCapsule implements ProtoCapsule<Transaction> {
     return false;
   }
 
+  //重置交易的结果
   public void resetResult() {
+    //检查当前交易实例的返回结果数量（ RetCount ）是否大于 0
     if (this.getInstance().getRetCount() > 0) {
+      /*
+      - 如果返回结果数量大于 0，则执行以下操作：
+        1. 调用  this.getInstance().toBuilder() ，创建当前交易实例的构建器对象（ Builder ），用于修改当前实例的属性。
+        2. 调用  clearRet()  方法，清除交易实例中的所有返回结果（ Ret ）。
+        3. 调用  build()  方法，构建一个新的交易实例，并将其赋值给  this.transaction 。这样，当前交易的返回结果就被重置为空。
+       */
       this.transaction = this.getInstance().toBuilder().clearRet().build();
     }
   }

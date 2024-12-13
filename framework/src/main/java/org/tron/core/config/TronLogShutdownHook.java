@@ -5,27 +5,23 @@ import ch.qos.logback.core.util.Duration;
 import org.tron.program.FullNode;
 
 /**
- * @author kiven
- * tron log shutdown hock
+ * 实现日志记录的关闭钩子功能。
  */
 public class TronLogShutdownHook extends ShutdownHookBase {
 
-  /**
-   * The default shutdown delay check unit.
-   */
+  //默认的关闭延迟检查单位。
   private static final Duration CHECK_SHUTDOWN_DELAY = Duration.buildByMilliseconds(100);
 
-  /**
-   * The check times before shutdown.  default is 60000/100 = 600 times.
-   */
+  //在关闭之前的检查次数，默认为600次。
   private final long  check_times = 60 * 1000 / CHECK_SHUTDOWN_DELAY.getMilliseconds();
 
-  // if true, shutdown hook will be executed , for example, 'java -jar FullNode.jar -[v|h]'.
+  //控制是否执行关闭钩子的标志。
   public static volatile boolean shutDown = true;
 
   public TronLogShutdownHook() {
   }
 
+  //运行方法，用于执行关闭钩子的逻辑。
   @Override
   public void run() {
     try {

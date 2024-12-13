@@ -21,20 +21,24 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.tron.common.parameter.CommonParameter;
 
+
+//管理服务的容器，用于初始化、启动和停止服务。
 @Slf4j(topic = "app")
 public class ServiceContainer {
 
+  //存储服务的集合
   private final Set<Service> services;
 
   public ServiceContainer() {
     this.services = Collections.synchronizedSet(new LinkedHashSet<>());
   }
 
+  //向容器中添加服务。
   public void add(Service service) {
     this.services.add(service);
   }
 
-
+  //初始化所有服务。
   public void init() {
     this.services.forEach(service -> {
       logger.debug("Initing {}.", service.getClass().getSimpleName());
@@ -42,6 +46,7 @@ public class ServiceContainer {
     });
   }
 
+  //根据通用参数初始化所有服务。
   public void init(CommonParameter parameter) {
     this.services.forEach(service -> {
       logger.debug("Initing {}.", service.getClass().getSimpleName());
@@ -49,6 +54,7 @@ public class ServiceContainer {
     });
   }
 
+  //启动所有服务。
   public void start() {
     logger.info("Starting api services.");
     this.services.forEach(service -> {
@@ -58,6 +64,7 @@ public class ServiceContainer {
     logger.info("All api services started.");
   }
 
+  //停止所有服务。
   public void stop() {
     logger.info("Stopping api services.");
     this.services.forEach(service -> {
@@ -67,6 +74,7 @@ public class ServiceContainer {
     logger.info("All api services stopped.");
   }
 
+  //阻塞直到所有服务停止。
   public void blockUntilShutdown() {
     this.services.stream().findFirst().ifPresent(Service::blockUntilShutdown);
   }

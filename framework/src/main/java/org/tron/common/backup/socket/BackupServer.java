@@ -23,15 +23,20 @@ public class BackupServer implements AutoCloseable {
 
   private CommonParameter commonParameter = CommonParameter.getInstance();
 
+  //备份服务器端口号。
   private int port = commonParameter.getBackupPort();
 
+  //备份管理器，用于处理备份相关操作。
   private BackupManager backupManager;
 
+  //网络通道。
   private Channel channel;
 
+  //控制备份服务器关闭的标志。
   private volatile boolean shutdown = false;
 
   private final String name = "BackupServer";
+  //线程池执行器。
   private ExecutorService executor;
 
   @Autowired
@@ -39,6 +44,7 @@ public class BackupServer implements AutoCloseable {
     this.backupManager = backupManager;
   }
 
+  //初始化服务器并启动备份功能。
   public void initServer() {
     if (port > 0 && commonParameter.getBackupMembers().size() > 0) {
       executor = ExecutorServiceManager.newSingleThreadExecutor(name);
@@ -52,6 +58,7 @@ public class BackupServer implements AutoCloseable {
     }
   }
 
+  //启动备份服务器，配置和绑定网络通道，处理数据包解析和消息处理。
   private void start() throws Exception {
     NioEventLoopGroup group = new NioEventLoopGroup(1);
     try {

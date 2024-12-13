@@ -13,12 +13,17 @@ import org.tron.core.exception.ItemNotFoundException;
 import org.tron.core.net.peer.PeerConnection;
 import org.tron.core.net.peer.PeerManager;
 
+/**
+ * 实现PbftInterface接口，提供一些共识算法的基础功能。
+ */
 @Component
 public class PbftBaseImpl implements PbftInterface {
 
+  //管理器对象，用于管理区块链数据。
   @Autowired
   private Manager manager;
 
+  //检查节点是否正在同步区块链数据。
   @Override
   public boolean isSyncing() {
     List<PeerConnection> peers = PeerManager.getPeers();
@@ -35,8 +40,10 @@ public class PbftBaseImpl implements PbftInterface {
     return result.get();
   }
 
+  //转发PbftBaseMessage消息给其他节点。
   @Override
   public void forwardMessage(PbftBaseMessage message) {
+    //存储节点连接信息的列表。
     List<PeerConnection> peers = PeerManager.getPeers();
     if (peers.isEmpty()) {
       return;
@@ -46,6 +53,7 @@ public class PbftBaseImpl implements PbftInterface {
     });
   }
 
+  //获取特定高度的区块。
   @Override
   public BlockCapsule getBlock(long blockNum) throws BadItemException, ItemNotFoundException {
     return manager.getChainBaseManager().getBlockByNum(blockNum);

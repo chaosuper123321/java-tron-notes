@@ -19,12 +19,15 @@ import com.google.common.base.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 
+//提供HTTP服务的功能。
 @Slf4j(topic = "rpc")
 public abstract class HttpService implements Service {
-
+  //用于存储HTTP服务器实例。
   protected Server apiServer;
+  //存储端口号。
   protected int port;
 
+  //阻塞直到服务器关闭。
   @Override
   public void blockUntilShutdown() {
     if (apiServer != null) {
@@ -37,6 +40,7 @@ public abstract class HttpService implements Service {
     }
   }
 
+  //启动HTTP服务器。
   @Override
   public void start() {
     if (apiServer != null) {
@@ -49,6 +53,7 @@ public abstract class HttpService implements Service {
     }
   }
 
+  //停止HTTP服务器。
   @Override
   public void stop() {
     if (apiServer != null) {
@@ -62,6 +67,7 @@ public abstract class HttpService implements Service {
     }
   }
 
+  //比较端口号是否相同。
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -74,6 +80,7 @@ public abstract class HttpService implements Service {
     return port == that.port;
   }
 
+  //返回类名和端口号的哈希值。
   @Override
   public int hashCode() {
     return Objects.hashCode(getClass().getSimpleName(), port);

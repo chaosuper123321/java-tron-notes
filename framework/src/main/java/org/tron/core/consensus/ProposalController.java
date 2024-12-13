@@ -9,6 +9,9 @@ import org.tron.core.capsule.ProposalCapsule;
 import org.tron.core.db.Manager;
 import org.tron.protos.Protocol.Proposal.State;
 
+/**
+ * 处理提案，并根据一定的规则对提案进行处理和更新状态。
+ */
 @Slf4j(topic = "witness")
 public class ProposalController {
 
@@ -23,6 +26,7 @@ public class ProposalController {
   }
 
 
+  //处理提案
   public void processProposals() {
     long latestProposalNum = manager.getDynamicPropertiesStore().getLatestProposalNum();
     if (latestProposalNum == 0) {
@@ -71,6 +75,7 @@ public class ProposalController {
     logger.info("Processing proposals done, oldest proposal[{}]", proposalNum);
   }
 
+  //处理单个提案
   public void processProposal(ProposalCapsule proposalCapsule) {
 
     List<ByteString> activeWitnesses = this.manager.getWitnessScheduleStore().getActiveWitnesses();
@@ -94,6 +99,7 @@ public class ProposalController {
 
   }
 
+  //设置动态参数
   public void setDynamicParameters(ProposalCapsule proposalCapsule) {
     ProposalService.process(manager, proposalCapsule);
   }

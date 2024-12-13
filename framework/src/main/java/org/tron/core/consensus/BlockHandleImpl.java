@@ -14,6 +14,9 @@ import org.tron.core.db.Manager;
 import org.tron.core.net.TronNetService;
 import org.tron.core.net.message.adv.BlockMessage;
 
+/**
+ * 处理区块相关的操作，包括生成区块、处理区块消息等。
+ */
 @Slf4j(topic = "consensus")
 @Component
 public class BlockHandleImpl implements BlockHandle {
@@ -30,6 +33,7 @@ public class BlockHandleImpl implements BlockHandle {
   @Autowired
   private Consensus consensus;
 
+  //获取状态
   @Override
   public State getState() {
     if (!backupManager.getStatus().equals(BackupStatusEnum.MASTER)) {
@@ -38,10 +42,12 @@ public class BlockHandleImpl implements BlockHandle {
     return State.OK;
   }
 
+  //获取锁
   public Object getLock() {
     return manager;
   }
 
+  //生成区块
   public BlockCapsule produce(Miner miner, long blockTime, long timeout) {
     BlockCapsule blockCapsule = manager.generateBlock(miner, blockTime, timeout);
     if (blockCapsule == null) {
@@ -59,6 +65,7 @@ public class BlockHandleImpl implements BlockHandle {
     return blockCapsule;
   }
 
+  //设置区块等待锁
   public void setBlockWaitLock(boolean flag) {
     manager.setBlockWaitLock(flag);
   }

@@ -18,6 +18,10 @@ import org.tron.core.exception.P2pException;
 import org.tron.core.net.message.MessageTypes;
 import org.tron.core.store.DynamicPropertiesStore;
 
+/**
+ * 定义一个抽象的消息类，用于在网络层之间传递消息，支持数据打包、消息类型定义、消息ID生成等功能。
+ *
+ */
 public abstract class Message {
 
   protected static final Logger logger = LoggerFactory.getLogger("Message");
@@ -47,12 +51,14 @@ public abstract class Message {
     this.data = packed;
   }
 
+  //比较两个字节数组是否相等，用于校验数据完整性。
   public static void compareBytes(byte[] src, byte[] dest) throws P2pException {
     if (src.length != dest.length) {
       throw new P2pException(PROTOBUF_ERROR, PROTOBUF_ERROR.getDesc());
     }
   }
 
+  //根据字节数组数据获取CodedInputStream实例，支持过滤未知字段。
   public static CodedInputStream getCodedInputStream(byte[] data) {
     CodedInputStream codedInputStream = CodedInputStream.newInstance(data);
     if (isFilter()) {
@@ -65,27 +71,33 @@ public abstract class Message {
     return dynamicPropertiesStore.getAllowProtoFilterNum() == 1;
   }
 
+  //获取发送数据的ByteBuf格式。
   public ByteBuf getSendData() {
     return Unpooled.wrappedBuffer(ArrayUtils.add(this.getData(), 0, type));
   }
 
+  //获取发送数据的字节数组格式。
   public byte[] getSendBytes() {
     return ArrayUtils.add(this.getData(), 0, type);
   }
 
+  //生成消息的ID，用于消息追踪和识别。
   public Sha256Hash getMessageId() {
     return Sha256Hash.of(CommonParameter.getInstance().isECKeyCryptoEngine(),
         getData());
   }
 
+  //获取消息的数据内容。
   public byte[] getData() {
     return this.data;
   }
 
+  //获取消息的类型。
   public MessageTypes getType() {
     return MessageTypes.fromByte(this.type);
   }
 
+  //抽象方法，定义了获取响应消息类的类型。
   public abstract Class<?> getAnswerMessage();
 
   @Override

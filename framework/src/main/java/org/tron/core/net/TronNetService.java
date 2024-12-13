@@ -127,6 +127,7 @@ public class TronNetService {
     advService.broadcast(msg);
   }
 
+  //快速广播交易。
   public int fastBroadcastTransaction(TransactionMessage msg) {
     return advService.fastBroadcastTransaction(msg);
   }

@@ -39,6 +39,7 @@ public class Metrics {
     }
   }
 
+  ////config.ini => node.metrics.prometheus.enable
   public static boolean enabled() {
     return CommonParameter.getInstance().isMetricsPrometheusEnable();
   }

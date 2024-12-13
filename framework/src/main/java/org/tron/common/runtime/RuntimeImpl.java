@@ -27,15 +27,20 @@ import org.tron.core.vm.program.Program.StackTooSmallException;
 import org.tron.protos.Protocol.Transaction.Contract.ContractType;
 import org.tron.protos.Protocol.Transaction.Result.contractResult;
 
+/**
+ * 执行智能合约的验证和执行流程，处理与智能合约执行相关的异常，并返回执行结果。
+ */
 @Slf4j(topic = "VM")
 public class RuntimeImpl implements Runtime {
-
+  //TransactionContext对象，包含执行智能合约所需的所有上下文信息。
   TransactionContext context;
+  //Actuator列表，用于普通合约的执行。
   private List<Actuator> actuatorList = null;
-
+  //用于特定类型合约（如VMActuator）的执行。
   @Getter
   private Actuator2 actuator2 = null;
 
+  //根据交易上下文执行智能合约，处理不同类型的合约执行或验证。
   @Override
   public void execute(TransactionContext context)
       throws ContractValidateException, ContractExeException {
@@ -69,17 +74,20 @@ public class RuntimeImpl implements Runtime {
 
   }
 
+  //返回智能合约执行的结果。
   @Override
   public ProgramResult getResult() {
     return context.getProgramResult();
   }
 
+  //获取执行过程中的运行时错误。
   @Override
   public String getRuntimeError() {
     return context.getProgramResult().getRuntimeError();
   }
 
 
+  //根据程序执行结果和异常设置结果代码。
   private void setResultCode(ProgramResult result) {
     RuntimeException exception = result.getException();
     if (Objects.isNull(exception) && StringUtils

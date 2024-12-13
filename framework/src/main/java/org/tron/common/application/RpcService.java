@@ -21,12 +21,19 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 调用start()方法启动RPC服务器。
+ * 调用blockUntilShutdown()方法阻塞直到服务器关闭。
+ * 调用stop()方法停止RPC服务器。
+ */
 @Slf4j(topic = "rpc")
+//实现RPC服务的功能。
 public abstract class RpcService implements Service {
 
   protected Server apiServer;
   protected int port;
 
+  //阻塞直到服务器关闭。
   @Override
   public void blockUntilShutdown() {
     if (apiServer != null) {
@@ -39,6 +46,7 @@ public abstract class RpcService implements Service {
     }
   }
 
+  //启动RPC服务器。
   @Override
   public void start() {
     if (apiServer != null) {
@@ -51,6 +59,7 @@ public abstract class RpcService implements Service {
     }
   }
 
+  //停止RPC服务器。
   @Override
   public void stop() {
     if (apiServer != null) {
@@ -65,6 +74,7 @@ public abstract class RpcService implements Service {
     }
   }
 
+  //比较两个RpcService对象是否相等。
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -77,6 +87,7 @@ public abstract class RpcService implements Service {
     return port == that.port;
   }
 
+  //计算RpcService对象的哈希值。
   @Override
   public int hashCode() {
     return Objects.hashCode(getClass().getSimpleName(), port);

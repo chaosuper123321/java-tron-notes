@@ -498,6 +498,7 @@ public class CommonParameter {
   @Setter
   public int metricsReportInterval = 10;
 
+  ////config.ini => node.metrics.prometheus.enable
   @Getter
   @Setter
   public boolean metricsPrometheusEnable = false;

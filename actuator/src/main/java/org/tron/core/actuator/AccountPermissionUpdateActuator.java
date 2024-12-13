@@ -146,42 +146,52 @@ public class AccountPermissionUpdateActuator extends AbstractActuator {
     return true;
   }
 
+  // 验证账户权限更新合约的有效性
   @Override
   public boolean validate() throws ContractValidateException {
-
+    //检查 chainBaseManager 是否为 null ，如果是，则抛出 ContractValidateException 异常，提示存储不存在。
     if (chainBaseManager == null) {
       throw new ContractValidateException(ActuatorConstant.STORE_NOT_EXIST);
     }
-
+    //检查 this.any 是否为 null ，如果是，则抛出 ContractValidateException 异常，提示合约不存在。
     if (this.any == null) {
       throw new ContractValidateException(ActuatorConstant.CONTRACT_NOT_EXIST);
     }
-
+    //从 chainBaseManager 获取账户存储 accountStore 和动态属性存储 dynamicStore 的实例。
     AccountStore accountStore = chainBaseManager.getAccountStore();
+    //检查动态属性存储中是否允许多重签名，如果不允许，则抛出异常，提示多重签名未被允许。
     DynamicPropertiesStore dynamicStore = chainBaseManager.getDynamicPropertiesStore();
-
     if (dynamicStore.getAllowMultiSign() != 1) {
       throw new ContractValidateException("multi sign is not allowed, "
           + "need to be opened by the committee");
     }
+    //检查 this.any 是否为 AccountPermissionUpdateContract 类型，如果不是，则抛出异常，提示合约类型错误。
     if (!this.any.is(AccountPermissionUpdateContract.class)) {
       throw new ContractValidateException(
           "contract type error,expected type [AccountPermissionUpdateContract],real type["
               + any.getClass() + "]");
     }
+    //尝试从 any 中解包出该合约。
     final AccountPermissionUpdateContract accountPermissionUpdateContract;
     try {
       accountPermissionUpdateContract = any.unpack(AccountPermissionUpdateContract.class);
     } catch (InvalidProtocolBufferException e) {
+      //如果解包失败，捕获 InvalidProtocolBufferException 异常，记录错误信息并抛出 ContractValidateException 。
       logger.debug(e.getMessage(), e);
       throw new ContractValidateException(e.getMessage());
     }
+    //从合约中获取所有者地址并转换为字节数组，
     byte[] ownerAddress = accountPermissionUpdateContract.getOwnerAddress().toByteArray();
+    //检查该地址是否合法。
     if (!DecodeUtil.addressValid(ownerAddress)) {
+      //如果不合法，则抛出异常，提示所有者地址无效。
       throw new ContractValidateException("invalidate ownerAddress");
     }
+    //从账户存储中获取对应的账户，
     AccountCapsule accountCapsule = accountStore.get(ownerAddress);
+    //如果账户不存在，
     if (accountCapsule == null) {
+      //则抛出异常，提示所有者地址对应的账户不存在。
       throw new ContractValidateException("ownerAddress account does not exist");
     }
 

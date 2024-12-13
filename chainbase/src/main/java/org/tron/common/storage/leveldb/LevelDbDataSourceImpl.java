@@ -60,18 +60,29 @@ import org.tron.core.db.common.iterator.StoreIterator;
 import org.tron.core.db2.common.Instance;
 import org.tron.core.db2.common.WrappedByteArray;
 
+/**
+ * 核心 vs. 辅助操作：数据的增删改查是核心操作，而数据库的打开、初始化、关闭等可以视为辅助操作。
+ * 操作序列：一般情况下，操作序列为：初始化数据库 -> 打开数据库 -> 执行增删改查操作 -> 关闭数据库。
+ * 性能方面：性能考虑可能包括数据库操作的优化，例如批量更新数据以减少磁盘I/O，以及使用读写锁来提高并发性能。
+ * 可重用性：通过参数化配置（如数据库名称、路径等），该模块可以在不同的环境和场景下重用。
+ * 使用：该模块被用于操作LevelDB数据库，为上层应用提供数据存储解决方案。
+ */
+
+/**
+ * 该模块的目的是为了提供对LevelDB数据库的操作接口，包括初始化数据库、数据的增删改查等功能。
+ */
 @Slf4j(topic = "DB")
 @NoArgsConstructor
 public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[]>,
     Iterable<Entry<byte[], byte[]>>, Instance<LevelDbDataSourceImpl>  {
 
-  private String dataBaseName;
-  private DB database;
+  private String dataBaseName;        //数据库名称。
+  private DB database;                //数据库实例。
   private volatile boolean alive;
   private String parentPath;
-  private Options options;
-  private WriteOptions writeOptions;
-  private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
+  private Options options;            //数据库选项。
+  private WriteOptions writeOptions;  //写入操作的选项。
+  private ReadWriteLock resetDbLock = new ReentrantReadWriteLock(); //重置数据库时使用的读写锁。
   private static final String LEVELDB = "LEVELDB";
   private static final org.slf4j.Logger innerLogger = LoggerFactory.getLogger(LEVELDB);
   private Logger leveldbLogger = new Logger() {
@@ -81,9 +92,6 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   };
 
-  /**
-   * constructor.
-   */
   public LevelDbDataSourceImpl(String parentPath, String dataBaseName, Options options,
       WriteOptions writeOptions) {
     this.parentPath = Paths.get(
@@ -107,6 +115,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     writeOptions = new WriteOptions();
   }
 
+  //初始化数据库。
   @Override
   public void initDB() {
     resetDbLock.writeLock().lock();
@@ -134,6 +143,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //打开数据库。
   private void openDatabase(Options dbOptions) throws IOException {
     final Path dbPath = getDbPath();
     if (dbPath == null || dbPath.getParent() == null) {
@@ -165,9 +175,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     return Paths.get(parentPath, dataBaseName);
   }
 
-  /**
-   * reset database.
-   */
+  //重置数据库。
   public void resetDb() {
     resetDbLock.writeLock().lock();
     try {
@@ -194,6 +202,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     this.dataBaseName = name;
   }
 
+  //根据键获取数据。
   @Override
   public byte[] getData(byte[] key) {
     resetDbLock.readLock().lock();
@@ -204,6 +213,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //插入或更新数据。
   @Override
   public void putData(byte[] key, byte[] value) {
     resetDbLock.readLock().lock();
@@ -214,6 +224,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     }
   }
 
+  //根据键删除数据。
   @Override
   public void deleteData(byte[] key) {
     resetDbLock.readLock().lock();
@@ -401,6 +412,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     });
   }
 
+  //批量更新数据。
   @Override
   public void updateByBatch(Map<byte[], byte[]> rows, WriteOptionsWrapper options) {
     resetDbLock.readLock().lock();
@@ -438,6 +450,7 @@ public class LevelDbDataSourceImpl extends DbStat implements DbSourceInter<byte[
     return false;
   }
 
+  //关闭数据库。
   @Override
   public void closeDB() {
     resetDbLock.writeLock().lock();

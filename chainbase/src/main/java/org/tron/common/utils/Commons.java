@@ -13,11 +13,16 @@ import org.tron.core.store.DynamicPropertiesStore;
 import org.tron.core.store.ExchangeStore;
 import org.tron.core.store.ExchangeV2Store;
 
+
+/**
+ * 提供一系列公共工具方法，用于处理地址解码、余额调整、资产交换等功能，以支持区块链平台的基本操作。
+ */
 @Slf4j(topic = "Commons")
 public class Commons {
 
   public static final int ASSET_ISSUE_COUNT_LIMIT_MAX = 1000;
 
+  //对Base58Check编码的字符串进行解码。
   public static byte[] decode58Check(String input) {
     byte[] decodeCheck = Base58.decode(input);
     if (decodeCheck.length <= 4) {
@@ -38,6 +43,7 @@ public class Commons {
     return null;
   }
 
+  //从Base58Check编码的地址中解码出原始地址。
   public static byte[] decodeFromBase58Check(String addressBase58) {
     if (StringUtils.isEmpty(addressBase58)) {
       logger.warn("Warning: Address is empty !!");
@@ -55,15 +61,14 @@ public class Commons {
     return address;
   }
 
+  //调整账户余额。
   public static void adjustBalance(AccountStore accountStore, byte[] accountAddress, long amount)
       throws BalanceInsufficientException {
     AccountCapsule account = accountStore.getUnchecked(accountAddress);
     adjustBalance(accountStore, account, amount);
   }
 
-  /**
-   * judge balance.
-   */
+  //调整账户余额。
   public static void adjustBalance(AccountStore accountStore, AccountCapsule account, long amount)
       throws BalanceInsufficientException {
 
@@ -81,6 +86,7 @@ public class Commons {
     accountStore.put(account.getAddress().toByteArray(), account);
   }
 
+  //根据系统配置返回适当的交易所存储。
   public static ExchangeStore getExchangeStoreFinal(DynamicPropertiesStore dynamicPropertiesStore,
       ExchangeStore exchangeStore,
       ExchangeV2Store exchangeV2Store) {
@@ -91,6 +97,7 @@ public class Commons {
     }
   }
 
+  //存储交易所Capsule信息。
   public static void putExchangeCapsule(ExchangeCapsule exchangeCapsule,
       DynamicPropertiesStore dynamicPropertiesStore, ExchangeStore exchangeStore,
       ExchangeV2Store exchangeV2Store, AssetIssueStore assetIssueStore) {
@@ -104,6 +111,7 @@ public class Commons {
     }
   }
 
+  //根据系统配置返回适当的资产发行存储。
   public static AssetIssueStore getAssetIssueStoreFinal(
       DynamicPropertiesStore dynamicPropertiesStore,
       AssetIssueStore assetIssueStore, AssetIssueV2Store assetIssueV2Store) {
@@ -114,6 +122,7 @@ public class Commons {
     }
   }
 
+  //调整账户中指定资产的余额。
   public static void adjustAssetBalanceV2(AccountCapsule account, String AssetID, long amount,
       AccountStore accountStore, AssetIssueStore assetIssueStore,
       DynamicPropertiesStore dynamicPropertiesStore)
@@ -146,6 +155,7 @@ public class Commons {
     dynamicPropertiesStore.saveTotalShieldedPoolValue(totalShieldedPoolValue);
   }
 
+  //调整账户中指定资产的余额。
   public static void adjustAssetBalanceV2(byte[] accountAddress, String AssetID, long amount
       , AccountStore accountStore, AssetIssueStore assetIssueStore,
       DynamicPropertiesStore dynamicPropertiesStore)

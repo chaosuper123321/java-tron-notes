@@ -35,45 +35,66 @@ import org.tron.protos.Protocol.Transaction;
 import org.tron.protos.contract.SmartContractOuterClass.CreateSmartContract;
 import org.tron.protos.contract.SmartContractOuterClass.TriggerSmartContract;
 
+/**
+ * 该模块的目的是定义和处理以太坊J库中的内部交易，包括创建和调用智能合约。
+ */
+
+
+/**
+ * 核心与辅助操作：
+     核心操作包括交易的创建、数据的编码和哈希值的生成。
+     辅助操作包括交易的拒绝标记和获取额外数据。
+ * 操作序列：
+     首先，根据交易类型（创建合约或调用合约）初始化内部交易。
+     然后，根据需要设置交易数据和状态。
+     最后，生成交易的哈希值和编码数据。
+ * 性能方面：
+     性能考虑主要集中在数据的编码和哈希计算上，需要优化以减少处理时间。
+ * 可重用性：
+     该模块设计为可重用，可以在处理不同交易和合约调用时复用。
+ * 使用：
+     用于以太坊J库中的智能合约创建和调用，以及交易的内部处理。
+ */
 public class InternalTransaction {
 
-  private Transaction transaction;
-  private byte[] hash;
-  private byte[] parentHash;
-  /* the amount of trx to transfer (calculated as sun) */
+  private Transaction transaction;  //交易数据。
+  private byte[] hash;              //交易的哈希值。
+  private byte[] parentHash;        //父交易的哈希值。
+  /* 转移的TRX数量（以sun计算）。 */
   private long value;
 
+  //代币信息。
   private Map<String, Long> tokenInfo = new HashMap<>();
 
   /* the address of the destination account (for message)
    * In creation transaction the receive address is - 0 */
-  private byte[] receiveAddress;
+  private byte[] receiveAddress;    //接收地址。
 
   /* An unlimited size byte array specifying
    * input [data] of the message call or
    * Initialization code for a new contract */
-  private byte[] data;
-  private long nonce;
-  private byte[] transferToAddress;
+  private byte[] data;  //消息调用的输入数据或新合约的初始化代码。
+  private long nonce;   //用于存储交易的nonce值。
+  private byte[] transferToAddress; //用于存储转账目标地址。
 
-  /*  Message sender address */
+  /*  发送地址。 */
   private byte[] sendAddress;
   @Getter
-  private int deep;
+  private int deep; //用于获取深度值。
   @Getter
-  private int index;
-  private boolean rejected;
-  private String note;
-  private byte[] protoEncoded;
+  private int index;  //用于获取索引值。
+  private boolean rejected; //用于表示是否被拒绝。
+  private String note;  //用于存储备注信息。
+  private byte[] protoEncoded;  //用于存储编码后的数据。
 
   /*
-   * extra data field for recording parameters of vote witness opcode
+   * 用于记录投票见证操作码参数的额外数据字段
    */
   private String extra;
 
 
   /**
-   * Construct a root InternalTransaction
+   * 初始化内部交易，包括根交易和子交易。
    */
   public InternalTransaction(Transaction trx, InternalTransaction.TrxType trxType)
       throws ContractValidateException {
@@ -115,9 +136,8 @@ public class InternalTransaction {
   }
 
   /**
-   * Construct a child InternalTransaction
+   * 初始化内部交易，包括根交易和子交易。
    */
-
   public InternalTransaction(byte[] parentHash, int deep, int index,
       byte[] sendAddress, byte[] transferToAddress, long value, byte[] data, String note,
       long nonce, Map<String, Long> tokenInfo) {
@@ -144,10 +164,12 @@ public class InternalTransaction {
     }
   }
 
+  //获取交易信息。
   public Transaction getTransaction() {
     return transaction;
   }
 
+  //设置交易信息。
   public void setTransaction(Transaction transaction) {
     this.transaction = transaction;
   }
@@ -156,10 +178,12 @@ public class InternalTransaction {
     return transferToAddress.clone();
   }
 
+  //标记交易为拒绝。
   public void reject() {
     this.rejected = true;
   }
 
+  //检查交易是否被拒绝。
   public boolean isRejected() {
     return rejected;
   }
@@ -219,6 +243,7 @@ public class InternalTransaction {
     return extra == null ? "" : extra;
   }
 
+  //获取交易的哈希值。
   public final byte[] getHash() {
     if (!isEmpty(hash)) {
       return Arrays.copyOf(hash, hash.length);
@@ -238,6 +263,7 @@ public class InternalTransaction {
     return nonce;
   }
 
+  //获取编码后的交易信息。
   public byte[] getEncoded() {
     if (protoEncoded != null) {
       return protoEncoded.clone();
@@ -263,17 +289,17 @@ public class InternalTransaction {
   }
 
   public enum TrxType {
-    TRX_PRECOMPILED_TYPE,
-    TRX_CONTRACT_CREATION_TYPE,
-    TRX_CONTRACT_CALL_TYPE,
-    TRX_UNKNOWN_TYPE,
+    TRX_PRECOMPILED_TYPE,       //预编译类型
+    TRX_CONTRACT_CREATION_TYPE, //创建类型
+    TRX_CONTRACT_CALL_TYPE,     //调用类型
+    TRX_UNKNOWN_TYPE,           //未知类型
   }
 
   public enum ExecutorType {
-    ET_PRE_TYPE,
-    ET_NORMAL_TYPE,
-    ET_CONSTANT_TYPE,
-    ET_UNKNOWN_TYPE,
+    ET_PRE_TYPE,          //预执行类型
+    ET_NORMAL_TYPE,       //普通执行类型
+    ET_CONSTANT_TYPE,     //常量执行类型
+    ET_UNKNOWN_TYPE,      //未知类型
   }
 
 }

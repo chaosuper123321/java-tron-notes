@@ -20,6 +20,9 @@ import org.tron.core.config.Configuration;
 import org.tron.core.net.TronNetService;
 
 
+/**
+ * 动态加载配置文件并实时更新系统参数。
+ */
 @Slf4j(topic = "app")
 @Component
 public class DynamicArgs {
@@ -30,6 +33,7 @@ public class DynamicArgs {
   private ScheduledExecutorService reloadExecutor;
   private final String esName = "dynamic-reload";
 
+  //初始化方法，启动动态加载配置服务。
   @PostConstruct
   public void init() {
     if (parameter.isDynamicConfigEnable()) {
@@ -51,6 +55,7 @@ public class DynamicArgs {
     }
   }
 
+  //运行方法，检查配置文件是否有更新并重新加载。
   public void run() {
     File config = getConfigFile();
     if (config != null) {
@@ -62,6 +67,7 @@ public class DynamicArgs {
     }
   }
 
+  //获取配置文件方法。
   private File getConfigFile() {
     String confFilePath;
     if (isNoneBlank(parameter.getShellConfFileName())) {
@@ -78,6 +84,7 @@ public class DynamicArgs {
     return confFile;
   }
 
+  //重新加载配置方法。
   public void reload() {
     logger.debug("Reloading ... ");
     Config config = Configuration.getByFileName(parameter.getShellConfFileName(),
@@ -88,6 +95,7 @@ public class DynamicArgs {
     updateTrustNodes(config);
   }
 
+  //更新活动节点方法。
   private void updateActiveNodes(Config config) {
     List<InetSocketAddress> newActiveNodes =
         Args.getInetSocketAddress(config, Constant.NODE_ACTIVE, true);
@@ -99,6 +107,7 @@ public class DynamicArgs {
         TronNetService.getP2pConfig().getActiveNodes().toString());
   }
 
+  //更新信任节点方法。
   private void updateTrustNodes(Config config) {
     List<InetAddress> newPassiveNodes = Args.getInetAddress(config, Constant.NODE_PASSIVE);
     parameter.setPassiveNodes(newPassiveNodes);
@@ -111,6 +120,7 @@ public class DynamicArgs {
         TronNetService.getP2pConfig().getTrustNodes().toString());
   }
 
+  //关闭方法，用于关闭动态加载配置服务。
   @PreDestroy
   public void close() {
     ExecutorServiceManager.shutdownAndAwaitTermination(reloadExecutor, esName);

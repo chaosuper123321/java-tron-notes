@@ -5,6 +5,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.tron.protos.contract.ShieldContract.SpendDescription;
 
+/**
+ * 创建和管理SpendDescription对象。
+ */
 @Slf4j(topic = "capsule")
 public class SpendDescriptionCapsule implements ProtoCapsule<SpendDescription> {
 

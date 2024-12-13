@@ -20,6 +20,9 @@ import org.tron.core.services.interfaceOnPBFT.http.PBFT.HttpApiOnPBFTService;
 import org.tron.core.services.interfaceOnSolidity.RpcApiServiceOnSolidity;
 import org.tron.core.services.interfaceOnSolidity.http.solidity.HttpApiOnSolidityService;
 
+/**
+ * 配置Tron区块链的默认设置。
+ */
 @Slf4j(topic = "app")
 @Configuration
 @Import(CommonConfig.class)
@@ -40,6 +43,7 @@ public class DefaultConfig {
     Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("Uncaught exception", e));
   }
 
+  //创建用于撤销数据库的RevokingDatabase实例。
   @Bean(destroyMethod = "")
   public RevokingDatabase revokingDatabase() {
     try {
@@ -51,6 +55,7 @@ public class DefaultConfig {
   }
 
 
+  //根据是否为Solidity节点返回适当的RpcApiServiceOnSolidity实例。
   @Bean
   public RpcApiServiceOnSolidity getRpcApiServiceOnSolidity() {
     boolean isSolidityNode = Args.getInstance().isSolidityNode();
@@ -61,6 +66,7 @@ public class DefaultConfig {
     return null;
   }
 
+  //根据是否为Solidity节点返回适当的HttpApiOnSolidityService实例。
   @Bean
   public HttpApiOnSolidityService getHttpApiOnSolidityService() {
     boolean isSolidityNode = Args.getInstance().isSolidityNode();
@@ -71,6 +77,7 @@ public class DefaultConfig {
     return null;
   }
 
+  //根据是否为Solidity节点返回适当的RpcApiServiceOnPBFT实例。
   @Bean
   public RpcApiServiceOnPBFT getRpcApiServiceOnPBFT() {
     boolean isSolidityNode = Args.getInstance().isSolidityNode();
@@ -81,6 +88,7 @@ public class DefaultConfig {
     return null;
   }
 
+  //根据是否为Solidity节点返回适当的HttpApiOnPBFTService实例。
   @Bean
   public HttpApiOnPBFTService getHttpApiOnPBFTService() {
     boolean isSolidityNode = Args.getInstance().isSolidityNode();
@@ -91,6 +99,7 @@ public class DefaultConfig {
     return null;
   }
 
+  //创建用于备份RocksDB的BackupRocksDBAspect实例。
   @Bean
   @Conditional(NeedBeanCondition.class)
   public BackupRocksDBAspect backupRocksDBAspect() {

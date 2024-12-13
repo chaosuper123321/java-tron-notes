@@ -28,6 +28,13 @@ import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 激活通道。
+ * 读取UDP消息。
+ * 处理UDP消息。
+ * 发送UDP消息。
+ * 刷新通道。
+ */
 @Slf4j(topic = "net")
 public class MessageHandler extends SimpleChannelInboundHandler<UdpEvent>
     implements Consumer<UdpEvent> {
@@ -41,11 +48,13 @@ public class MessageHandler extends SimpleChannelInboundHandler<UdpEvent>
     this.eventHandler = eventHandler;
   }
 
+  //当通道激活时调用事件处理程序的方法。
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
     eventHandler.channelActivated();
   }
 
+  //读取UDP消息并调用事件处理程序处理。
   @Override
   public void channelRead0(ChannelHandlerContext ctx, UdpEvent udpEvent) {
     logger.debug("rcv udp msg type {}, len {} from {} ",
@@ -55,6 +64,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<UdpEvent>
     eventHandler.handleEvent(udpEvent);
   }
 
+  //发送UDP消息到指定地址。
   @Override
   public void accept(UdpEvent udpEvent) {
     logger.debug("send udp msg type {}, len {} to {} ",
@@ -65,17 +75,20 @@ public class MessageHandler extends SimpleChannelInboundHandler<UdpEvent>
     sendPacket(udpEvent.getMessage().getSendData(), address);
   }
 
+  //发送数据包到指定地址。
   void sendPacket(byte[] wire, InetSocketAddress address) {
     DatagramPacket packet = new DatagramPacket(Unpooled.copiedBuffer(wire), address);
     channel.write(packet);
     channel.flush();
   }
 
+  //读取完毕后刷新通道。
   @Override
   public void channelReadComplete(ChannelHandlerContext ctx) {
     ctx.flush();
   }
 
+  //处理异常情况。
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     logger.warn("Exception caught in udp message handler, {} {}",

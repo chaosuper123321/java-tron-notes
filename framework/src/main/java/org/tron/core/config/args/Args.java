@@ -1048,6 +1048,7 @@ public class Args extends CommonParameter {
     PARAMETER.metricsReportInterval = config.hasPath(Constant.METRICS_REPORT_INTERVAL) ? config
         .getInt(Constant.METRICS_REPORT_INTERVAL) : 10;
 
+    //config.ini => node.metrics.prometheus.enable
     PARAMETER.metricsPrometheusEnable = config.hasPath(Constant.METRICS_PROMETHEUS_ENABLE) && config
         .getBoolean(Constant.METRICS_PROMETHEUS_ENABLE);
     PARAMETER.metricsPrometheusPort = config.hasPath(Constant.METRICS_PROMETHEUS_PORT) ? config

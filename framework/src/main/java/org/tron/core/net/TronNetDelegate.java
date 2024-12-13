@@ -371,12 +371,20 @@ public class TronNetDelegate {
     return chainBaseManager.getDynamicPropertiesStore().getMaintenanceTimeInterval();
   }
 
+  //检查当前区块是否未被固化
   public boolean isBlockUnsolidified() {
+    //检查一个名为  unsolidifiedBlockCheck  的布尔变量。
     if (!unsolidifiedBlockCheck) {
+      //如果该变量为  false ，则表示不需要检查未固化的区块，直接返回  false 。
       return false;
     }
+    //调用  chainBaseManager  对象的  getHeadBlockNum  方法，获取当前链的最新区块编号（头区块编号），并将其存储在  headNum  变量中。
     long headNum = chainBaseManager.getHeadBlockNum();
+    //调用  chainBaseManager  的  getSolidBlockId  方法，获取最后一个固化区块的 ID，并调用  getNum  方法获取该固化区块的编号，存储在  solidNum  变量中。
     long solidNum = chainBaseManager.getSolidBlockId().getNum();
+    //计算当前头区块编号  headNum  与最后一个固化区块编号  solidNum  之间的差值。
+    //如果这个差值大于或等于  maxUnsolidifiedBlocks （最大未固化区块数），则返回  true ，表示存在未固化的区块；
+    //否则返回  false 。
     return headNum - solidNum >= maxUnsolidifiedBlocks;
   }
 

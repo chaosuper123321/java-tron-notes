@@ -19,16 +19,12 @@ import org.springframework.context.ApplicationContext;
 
 public class ApplicationFactory {
 
-  /**
-   * Build a new cli application.
-   */
+  //用于构建一个新的CLI应用程序实例。
   public static Application create(ApplicationContext ctx) {
     return ctx.getBean(ApplicationImpl.class);
   }
 
-  /**
-   * Build a new application.
-   */
+  //用于构建一个新的应用程序实例。
   public Application createApplication() {
     return new ApplicationImpl();
   }
